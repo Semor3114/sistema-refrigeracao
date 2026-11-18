@@ -8,6 +8,7 @@ const VAZIO = { eqp_nome: '', eqp_tipo: TIPOS[0], eqp_marca: '', eqp_potencia_bt
 function Equipamentos() {
     const [equipamentos, setEquipamentos] = useState([]);
     const [form, setForm] = useState(VAZIO);
+    const [tipoOutro, setTipoOutro] = useState('');
     const [editandoId, setEditandoId] = useState(null);
     const [mensagem, setMensagem] = useState('');
 
@@ -24,23 +25,29 @@ function Equipamentos() {
     }
 
     function alterarCampo(e) {
-    const { name, value } = e.target;
+        const { name, value } = e.target;
 
-    if (name === 'eqp_tipo' && value !== 'Ar-condicionado') {
-        setForm({ ...form, eqp_tipo: value, eqp_potencia_btu: '' });
-    } else {
-        setForm({ ...form, [name]: value });
+        if (name === 'eqp_tipo' && value !== 'Ar-condicionado') {
+            setForm({ ...form, eqp_tipo: value, eqp_potencia_btu: '' });
+        } else {
+            setForm({ ...form, [name]: value });
+        }
     }
-}
 
     async function salvar(e) {
         e.preventDefault();
+
+        const dados = {
+            ...form,
+            eqp_tipo: form.eqp_tipo === 'Outro' ? tipoOutro : form.eqp_tipo
+        };
+
         try {
             if (editandoId) {
-                await service.atualizar(editandoId, form);
+                await service.atualizar(editandoId, dados);
                 setMensagem('Equipamento atualizado!');
             } else {
-                await service.cadastrar(form);
+                await service.cadastrar(dados);
                 setMensagem('Equipamento cadastrado!');
             }
             cancelar();
@@ -52,17 +59,22 @@ function Equipamentos() {
 
     function editar(eq) {
         setEditandoId(eq.eqp_id);
+
+        const tipoConhecido = TIPOS.includes(eq.eqp_tipo);
+
         setForm({
             eqp_nome: eq.eqp_nome,
-            eqp_tipo: eq.eqp_tipo,
+            eqp_tipo: tipoConhecido ? eq.eqp_tipo : 'Outro',
             eqp_marca: eq.eqp_marca || '',
             eqp_potencia_btu: eq.eqp_potencia_btu || ''
         });
+        setTipoOutro(tipoConhecido ? '' : eq.eqp_tipo);
     }
 
     function cancelar() {
         setEditandoId(null);
         setForm(VAZIO);
+        setTipoOutro('');
     }
 
     async function excluir(id) {
@@ -92,12 +104,17 @@ function Equipamentos() {
                     {TIPOS.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
 
+                {form.eqp_tipo === 'Outro' && (
+                    <input placeholder="Qual equipamento?" value={tipoOutro}
+                        onChange={(e) => setTipoOutro(e.target.value)} required />
+                )}
+
                 <input name="eqp_marca" placeholder="Marca" value={form.eqp_marca}
                     onChange={alterarCampo} />
 
                 {form.eqp_tipo === 'Ar-condicionado' && (
                     <input name="eqp_potencia_btu" type="number" placeholder="Potência (BTU)"
-                value={form.eqp_potencia_btu} onChange={alterarCampo} />
+                        value={form.eqp_potencia_btu} onChange={alterarCampo} />
                 )}
 
                 <div className="acoes-form">
