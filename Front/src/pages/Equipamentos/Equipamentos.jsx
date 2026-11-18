@@ -24,8 +24,14 @@ function Equipamentos() {
     }
 
     function alterarCampo(e) {
-        setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === 'eqp_tipo' && value !== 'Ar-condicionado') {
+        setForm({ ...form, eqp_tipo: value, eqp_potencia_btu: '' });
+    } else {
+        setForm({ ...form, [name]: value });
     }
+}
 
     async function salvar(e) {
         e.preventDefault();
@@ -89,8 +95,10 @@ function Equipamentos() {
                 <input name="eqp_marca" placeholder="Marca" value={form.eqp_marca}
                     onChange={alterarCampo} />
 
-                <input name="eqp_potencia_btu" type="number" placeholder="Potência (BTU)"
-                    value={form.eqp_potencia_btu} onChange={alterarCampo} />
+                {form.eqp_tipo === 'Ar-condicionado' && (
+                    <input name="eqp_potencia_btu" type="number" placeholder="Potência (BTU)"
+                value={form.eqp_potencia_btu} onChange={alterarCampo} />
+                )}
 
                 <div className="acoes-form">
                     <button type="submit">{editandoId ? 'Salvar alterações' : 'Cadastrar'}</button>
